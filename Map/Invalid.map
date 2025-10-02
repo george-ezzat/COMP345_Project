@@ -1,0 +1,15 @@
+[Map]
+author:Bluebird
+image Canada.bmp
+wrap=yes
+scroll=none
+warn=yes
+
+[Continents]
+Northern Islands=12
+Southern Islands=
+
+[Territories]
+Northern Islands
+2 510 124 Northern Islands 1 3
+3,487,139,Northern Islands,2,4
