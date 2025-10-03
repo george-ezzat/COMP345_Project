@@ -1,6 +1,7 @@
 #include "Player.h"
+using namespace std;
 
-Player::Player(std::string name) : name(name) {
+Player::Player(string name) : name(name) {
     ordersList = new OrdersList();
     hand = nullptr;
 }
@@ -10,11 +11,11 @@ Player::~Player() {
     delete hand;
 }
 
-std::string Player::getName() const {
+string Player::getName() const {
     return name;
 }
 
-std::vector<Territory*> Player::getTerritories() const {
+vector<Territory*> Player::getTerritories() const {
     return territories;
 }
 
@@ -34,21 +35,21 @@ void Player::setHand(Hand* h) {
     hand = h;
 }
 
-std::vector<Territory*> Player::toDefend() {
-    std::cout << name << " deciding which territories to DEFEND..." << std::endl;
+vector<Territory*> Player::toDefend() {
+    cout << name << " deciding which territories to DEFEND..." ;
     return territories;
 }
 
-std::vector<Territory*> Player::toAttack() {
-    std::cout << name << " deciding which territories to Attack..." << std::endl;
-    std::vector<Territory*> attackList;
+vector<Territory*> Player::toAttack() {
+    cout << name << " deciding which territories to Attack...";
+    vector<Territory*> attackList;
     attackList.push_back(new Territory("Enemy Land A"));
     attackList.push_back(new Territory("Enemy Land B"));
     return attackList;
 }
 
 void Player::issueOrder() {
-    std::cout << name << " issuing an order..." << std::endl;
+    cout << name << " issuing an order...";
     Order* newOrder = new Order("Attack Order Example");
     ordersList->addOrder(newOrder);
 }
