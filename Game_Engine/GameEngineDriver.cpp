@@ -9,8 +9,26 @@ void testGameStates() {
     // FIX 1: Change to pointer and use 'new'
     GameEngine* engine = new GameEngine(); 
 
-    // GameEngine engine;
-
+    // For MainDriver: automated test with predefined commands
+    #ifdef MAIN_DRIVER_INCLUDED
+    std::cout << "Running automated GameEngine state transition demo:" << std::endl;
+    
+    // Show initial state
+    engine->printCurrentState();
+    
+    // Demo different commands and state transitions
+    std::string testCommands[] = {"loadmap Map/Asia.map", "validatemap", "addplayer Player1", "addplayer Player2", "assigncountries", "issueorder", "endissueorders", "execorder", "win", "end"};
+    
+    for (const std::string& cmd : testCommands) {
+        std::cout << "\nExecuting command: " << cmd << std::endl;
+        engine->executeCommand(cmd);
+        engine->printCurrentState();
+    }
+    
+    std::cout << "\nGameEngine automated test complete." << std::endl;
+    
+    #else
+    // Interactive version for standalone testing
     std::string command;
     bool continueGame = true;
 
@@ -38,12 +56,16 @@ void testGameStates() {
 
         std::cout << std::endl;
     }
+    #endif
+    
     // FIX 4: Clean up memory before exiting test function
     delete engine;
 }
 
 // For testing 
+#ifndef MAIN_DRIVER_INCLUDED
 int main() {
     testGameStates();
     return 0;
 }
+#endif

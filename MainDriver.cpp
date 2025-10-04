@@ -5,7 +5,7 @@
 #include "Map/Map.h"
 #include "Orders/Orders.h"
 #include "Player/Player.h"
-// #include "Game_Engine/GameEngine.h" // Uncomment when available
+#include "Game_Engine/GameEngine.h"
 
 // Function declarations
 void testCards();
@@ -19,7 +19,7 @@ void testGameStates();
 #include "Map/MapDriver.cpp"
 #include "Orders/OrdersDriver.cpp"
 #include "Player/PlayerDriver.cpp"
-// #include "Game_Engine/GameEngineDriver.cpp" // Uncomment when available
+#include "Game_Engine/GameEngineDriver.cpp"
 
 int main() {
     // Call every test function in the driver classes
@@ -27,8 +27,7 @@ int main() {
     
     std::cout << "\n--- Testing Game States ---" << std::endl;
     try {
-        // testGameStates(); // Uncomment when GameEngine is available
-        std::cout << "GameEngine tests skipped (not available)" << std::endl;
+        testGameStates();
     } catch (const std::exception& e) {
         std::cout << "GameEngine test failed: " << e.what() << std::endl;
     }

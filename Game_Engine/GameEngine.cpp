@@ -109,13 +109,13 @@ std::ostream& operator<<(std::ostream& os, const GameEngine& engine) {
 bool GameEngine::validateCommand(const std::string& command) const {
     switch (*currentState) {
     case 0: // start
-        return command == "loadmap";
+        return command.rfind("loadmap", 0) == 0; // Check if command starts with "loadmap"
     case 1: // map loaded
-        return command == "loadmap" || command == "validatemap";
+        return command.rfind("loadmap", 0) == 0 || command == "validatemap";
     case 2: // map validated
-        return command == "addplayer";
+        return command.rfind("addplayer", 0) == 0; // Check if command starts with "addplayer"
     case 3: // players added
-        return command == "addplayer" || command == "assigncountries";
+        return command.rfind("addplayer", 0) == 0 || command == "assigncountries";
     case 4: // assign reinforcement
         return command == "issueorder";
     case 5: // issue orders
@@ -204,7 +204,9 @@ bool GameEngine::executeCommand(const std::string& command) {
             players->push_back(newPlayer);
             std::cout << "Player " << name << " added. Total players: " << players->size() << std::endl;
             
-            // State remains "map validated" to allow adding more players
+            // Transition to "players added" state after adding the first player
+            *currentState = 3; // move to "players added" state
+            notify();
             return true;
             }
         
@@ -223,8 +225,23 @@ bool GameEngine::executeCommand(const std::string& command) {
         }
     }
     else if (*currentState == 3) { // players added
-        if (command == "addplayer") {
-            // Stay in the same state
+        if (command.rfind("addplayer", 0) == 0) {
+            std::stringstream ss(command);
+            std::string cmd;
+            std::string name;
+            ss >> cmd >> name;
+
+            if (players->size() >= 6) {
+                std::cout << "Cannot add player. Maximum of 6 players reached." << std::endl;
+                return false;
+            }
+
+            // *** INTEGRATION POINT 3: Player Creation ***
+            Player* newPlayer = new Player(name); 
+            players->push_back(newPlayer);
+            std::cout << "Player " << name << " added. Total players: " << players->size() << std::endl;
+            
+            // Stay in "players added" state
             notify();
             return true;
         }
