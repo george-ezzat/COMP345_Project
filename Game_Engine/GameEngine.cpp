@@ -1,6 +1,13 @@
 #include "GameEngine.h"
 #include <iostream>
 #include <algorithm>
+#include <sstream>
+
+// NEW: Add includes for the component headers
+// NOTE: Adjust paths if your GameEngine.cpp is not at the same level as the folders
+#include "../Map/Map.h" 
+#include "../Cards/Cards.h"  // Contains WarzoneCard::Deck
+#include "../Player/Player.h" 
 
 // Constructor
 GameEngine::GameEngine() {
@@ -19,6 +26,11 @@ GameEngine::GameEngine() {
 
     // start at the initial state
     currentState = new int(0);
+
+    // NEW: Initialize all component pointers
+    gameMap = nullptr; // Map is loaded later, starts null
+    gameDeck = new WarzoneCard::Deck(); // Deck is created at start
+    players = new std::vector<Player*>(); // The vector itself is a pointer
 }
 
 // Copy constructor
@@ -43,6 +55,24 @@ GameEngine::~GameEngine() {
     delete[] states;
     delete[] transitions;
     delete currentState;
+    // NEW: Clean up the game components
+    delete gameDeck;
+    gameDeck = nullptr;
+
+    // Clean up all Player objects in the vector
+    for (Player* p : *players) {
+        delete p;
+    }
+    players->clear();
+    // Then clean up the vector pointer itself
+    delete players;
+    players = nullptr;
+
+    // Clean up map only if it was loaded
+    if (gameMap != nullptr) {
+        delete gameMap;
+        gameMap = nullptr;
+    }
 }
 
 // Assignment operator
@@ -108,29 +138,88 @@ bool GameEngine::executeCommand(const std::string& command) {
     }
 
     if (*currentState == 0) { // start
-        if (command == "loadmap") {
-            *currentState = 1; // move to "map loaded"
-            notify();
-            return true;
+        // 1. loadmap <filename>
+        if (command.rfind("loadmap", 0) == 0) {
+            
+            // Extract the filename from the command string
+            std::stringstream ss(command);
+            std::string cmd;
+            std::string filename;
+            ss >> cmd >> filename; 
+            
+            // *** INTEGRATION POINT 1: MapLoader ***
+            MapLoader loader; 
+            Map* loadedMap = loader.loadMap(filename);
+
+            if (loadedMap) {
+                if (gameMap != nullptr) delete gameMap; 
+                gameMap = loadedMap;
+                std::cout << "Map " << filename << " loaded successfully." << std::endl;
+                *currentState = 1; // move to "map loaded" state
+                notify();
+                return true;
+            } else {
+                std::cout << "Error: Failed to load map " << filename << ". Staying in 'start' state." << std::endl;
+                return false;
+            }
         }
     }
     else if (*currentState == 1) { // map loaded
-        if (command == "loadmap") {
-            // Stay in the same state
-            notify();
-            return true;
+        // 2. validatemap
+        if (command == "validatemap") {
+            // *** INTEGRATION POINT 2: Map Validation ***
+            if (gameMap != nullptr && gameMap->validate()) { 
+                std::cout << "Map successfully validated." << std::endl;
+                *currentState = 2; // move to "map validated" state
+                notify();
+                return true;
+            } else {
+                std::cout << "Map validation FAILED. Staying in 'map loaded' state." << std::endl;
+                return false;
+            }
+        }
         }
         else if (command == "validatemap") {
             *currentState = 2; // move to "map validated"
             notify();
             return true;
         }
-    }
+    //}
     else if (*currentState == 2) { // map validated
-        if (command == "addplayer") {
-            *currentState = 3; // move to "players added"
-            notify();
+        // 3. addplayer <name>
+        if (command.rfind("addplayer", 0) == 0) {
+            
+            std::stringstream ss(command);
+            std::string cmd;
+            std::string name;
+            ss >> cmd >> name;
+
+            if (players->size() >= 6) {
+                std::cout << "Cannot add player. Maximum of 6 players reached." << std::endl;
+                return false;
+            }
+
+            // *** INTEGRATION POINT 3: Player Creation ***
+            Player* newPlayer = new Player(name); 
+            players->push_back(newPlayer);
+            std::cout << "Player " << name << " added. Total players: " << players->size() << std::endl;
+            
+            // State remains "map validated" to allow adding more players
             return true;
+            }
+        
+        // 4. gamestart (to start the main assignment phase)
+        if (command == "gamestart") {
+            if (players->size() >= 2) {
+                std::cout << "Game started. Moving to 'players added' state to begin setup." << std::endl;
+                // NOTE: The logic for assigncountries will happen between states 2 and 3 in the final version.
+                *currentState = 3; // move to "players added" state
+                notify();
+                return true;
+            } else {
+                std::cout << "Cannot start game. Need at least 2 players." << std::endl;
+                return false;
+            }
         }
     }
     else if (*currentState == 3) { // players added

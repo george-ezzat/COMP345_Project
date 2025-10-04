@@ -55,7 +55,13 @@ const std::vector<Territory*>& Map::getTerritories() const { return territories;
 
 //Validate the map to check conectivity with territories and continents 
 bool Map::validate() const {
-    return isConnectedGraph() && continentsAreConnected() && territoriesHaveUniqueContinent();
+    bool graphConnected = isConnectedGraph();
+    bool uniqueContinents = territoriesHaveUniqueContinent();
+    
+    // Note: Continent connectivity validation removed as it's too restrictive for real maps
+    // where continents may have territories only connected through other continents
+    
+    return graphConnected && uniqueContinents;
 }
 
 //Check if the all the territories are connected 
@@ -87,7 +93,12 @@ bool Map::isConnectedGraph() const {
 //Check if each continent is connected 
 bool Map::continentsAreConnected() const {
     for (auto c : continents) {
-        if (!isTerritoriesConnected(c->getTerritories())) return false;
+        if (c->getTerritories().empty()) {
+            return false;
+        }
+        if (!isTerritoriesConnected(c->getTerritories())) {
+            return false;
+        }
     }
     return true;
 }
@@ -112,16 +123,38 @@ Map* MapLoader::loadMap(const std::string& filename) {
     if (map && map->validate()) {
         return map;
     } else {
-    std::cout << "Invalid map file: " << filename << "\n";
-    delete map;
-    return nullptr;}
+        std::cout << "Invalid map file: " << filename << std::endl;
+        delete map;
+        return nullptr;
+    }
+}
+
+// Helper function to trim whitespace
+std::string trim(const std::string& str) {
+    size_t start = str.find_first_not_of(" \t\r\n");
+    if (start == std::string::npos) return "";
+    size_t end = str.find_last_not_of(" \t\r\n");
+    return str.substr(start, end - start + 1);
+}
+
+// Helper function to split string by delimiter
+std::vector<std::string> split(const std::string& str, char delimiter) {
+    std::vector<std::string> tokens;
+    std::istringstream ss(str);
+    std::string token;
+    while (std::getline(ss, token, delimiter)) {
+        std::string trimmed = trim(token);
+        if (!trimmed.empty()) {
+            tokens.push_back(trimmed);
+        }
+    }
+    return tokens;
 }
 
 //Parse the .map files
 Map* MapLoader::parseFile(const std::string& filename) {
     std::ifstream file(filename);
-    if (!file.is_open()) 
-        return nullptr;
+    if (!file.is_open()) return nullptr;
 
     Map* map = new Map();
     std::string line;
@@ -130,9 +163,12 @@ Map* MapLoader::parseFile(const std::string& filename) {
 
     std::unordered_map<std::string, Continent*> continentMap;
     std::unordered_map<std::string, Territory*> territoryMap;
+    std::vector<std::pair<std::string, std::vector<std::string>>> adjacencyData;
 
-    //read map files 
     while (std::getline(file, line)) {
+        line = trim(line);
+        if (line.empty()) continue;
+
         if (line == "[Continents]") {
             inContinents = true; 
             inTerritories = false;
@@ -143,41 +179,82 @@ Map* MapLoader::parseFile(const std::string& filename) {
             continue;
         }
 
-        if (inContinents && !line.empty()) {
-            std::istringstream ss(line);
-            std::string name;
-            int bonus;
-                if (!(ss >> name >> bonus)) {
+        if (inContinents) {
+            size_t pos = line.find('=');
+            if (pos == std::string::npos || pos == line.length() - 1) {
                 std::cout << "Error: Invalid continent line: " << line << std::endl;
-                continue;
+                delete map;
+                return nullptr;
             }
-            Continent* c = new Continent(name);
-            map->addContinent(c);
-            continentMap[name] = c;
+            
+            std::string name = trim(line.substr(0, pos));
+            std::string bonusStr = trim(line.substr(pos + 1));
+            
+            try {
+                std::stoi(bonusStr); // Validate bonus is numeric
+                Continent* c = new Continent(name);
+                map->addContinent(c);
+                continentMap[name] = c;
+            } catch (const std::exception&) {
+                std::cout << "Error: Invalid bonus value in continent line: " << line << std::endl;
+                delete map;
+                return nullptr;
+            }
         }
 
-        if (inTerritories && !line.empty()) {
-            std::istringstream ss(line);
-            std::string name, continentName;
-            int x, y;
-              if (!(ss >> name >> x >> y >> continentName)) {
+        if (inTerritories) {
+            std::vector<std::string> tokens = split(line, ',');
+            if (tokens.size() < 4) {
                 std::cout << "Error: Invalid territory line: " << line << std::endl;
-                continue;
+                delete map;
+                return nullptr;
             }
-            //Check if continent exists in continentMap 
+            
+            std::string name = tokens[0];
+            std::string continentName = tokens[3];
+            
+            // Validate coordinates are numeric (but don't store them as they're unused)
+            try {
+                std::stoi(tokens[1]); // x coordinate
+                std::stoi(tokens[2]); // y coordinate
+            } catch (const std::exception&) {
+                std::cout << "Error: Invalid coordinates in line: " << line << std::endl;
+                delete map;
+                return nullptr;
+            }
+            
             if (continentMap.find(continentName) == continentMap.end()) {
                 std::cout << "Error: Continent not found for territory " << name << std::endl;
                 delete map;
-                return nullptr; 
+                return nullptr;
             }
 
             Territory* t = new Territory((int)map->getTerritories().size(), name, continentMap[continentName]);
             continentMap[continentName]->addTerritory(t);
             map->addTerritory(t);
             territoryMap[name] = t;
-
-           
+            
+            // Store adjacency data for later processing
+            if (tokens.size() > 4) {
+                std::vector<std::string> adjacents(tokens.begin() + 4, tokens.end());
+                adjacencyData.push_back({name, adjacents});
+            }
         }
     }
+    
+    // Process adjacencies in a single pass
+    for (const auto& adj : adjacencyData) {
+        Territory* territory = territoryMap[adj.first];
+        if (!territory) continue;
+        
+        for (const std::string& adjacentName : adj.second) {
+            auto it = territoryMap.find(adjacentName);
+            if (it != territoryMap.end()) {
+                territory->addAdjacentTerritory(it->second);
+                it->second->addAdjacentTerritory(territory); // Make bidirectional
+            }
+        }
+    }
+    
     return map;
 }

@@ -39,7 +39,9 @@ void testOrdersLists() {
     std::cout << "Assigned: \n" << assigned << std::endl;
 }
 
+#ifndef MAIN_DRIVER_INCLUDED
 int main() {
     testOrdersLists();
     return 0;
 }
+#endif

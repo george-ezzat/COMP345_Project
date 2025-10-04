@@ -4,18 +4,18 @@
 #include <iostream>
 #include <random>
 
-namespace WarzonePlayer { class Player; }
-namespace WarzoneOrder { 
-    class Order; 
-    class OrdersList; 
-    class Bomb;
-    class Reinforcement;
-    class Blockade;
-    class Airlift;
-    class Negotiate;
-}
+// Forward declarations
+class Player;
+class Order;
+class OrdersList;
+class Bomb;
+class Blockade;
+class Airlift;
+class Negotiate;
 
 namespace WarzoneCard {
+    // Forward declaration within namespace
+    class Hand;
 
     enum class CardType { 
         Unknown, 
@@ -41,7 +41,7 @@ namespace WarzoneCard {
         CardType getType() const;
         void setType(CardType t);
         
-        void play(WarzonePlayer::Player* player);
+        void play(Player* player);
         
         friend std::ostream& operator<<(std::ostream& os, const Card& card);
     };
@@ -63,6 +63,7 @@ namespace WarzoneCard {
         void setCards(const std::vector<Card*>& newCards);
         
         Card* draw();
+        bool drawToHand(Hand* hand);  // Draw a card and add it to the hand
         void returnToDeck(Card* card);
         
         friend std::ostream& operator<<(std::ostream& os, const Deck& deck);
@@ -84,7 +85,7 @@ namespace WarzoneCard {
         
         void addCardToHand(Card* c);
         void removeCardFromHand(Card* c);
-        void playCard(Card* c, WarzonePlayer::Player* player, Deck* deck);
+        void playCard(Card* c, Player* player, Deck* deck);
         
         friend std::ostream& operator<<(std::ostream& os, const Hand& hand);
     };

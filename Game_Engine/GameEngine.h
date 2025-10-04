@@ -9,12 +9,23 @@
 
 class Observer;
 
+// 1. ADD FORWARD DECLARATIONS HERE
+class Map;
+class Player;
+namespace WarzoneCard { class Deck; } // Deck is in a namespace, as seen in Cards.h
+
 class GameEngine {
 private:
     std::string* states;
     std::string* transitions;
     int* currentState;
     std::vector<Observer*> observers;
+
+    // 2. ADD POINTERS TO GAME COMPONENTS
+    Map* gameMap;
+    WarzoneCard::Deck* gameDeck;
+    // The vector itself MUST also be a pointer to comply with the rule
+    std::vector<Player*>* players; 
 
 public:
     // Constructors/Destructor

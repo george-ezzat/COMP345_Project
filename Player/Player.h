@@ -2,31 +2,31 @@
 #include <string>
 #include <vector>
 #include <iostream>
-#include "Orders/Orders.h"
-#include "Cards/Cards.h"
-#include "Map/Map.h"
+#include "../Orders/Orders.h"
+#include "../Cards/Cards.h"
+#include "../Map/Map.h"
 using namespace std;
 
 class Player {
     private:
-        string name;
-        vector<Territory*> territories;
-        Hand* hand;
+        std::string name; 
+        std::vector<Territory*>* territories; // Should be a pointer
+        WarzoneCard::Hand* hand;
         OrdersList* ordersList;
 
     public:
         Player(std::string name);
         ~Player();
 
-        string getName();
-        vector<Territory*> getTerritories();
-        Hand* getHand();
+        std::string getName();
+        std::vector<Territory*>* getTerritories();
+        WarzoneCard::Hand* getHand();
         OrdersList* getOrdersList();
 
         void addTerritory(Territory* t);
-        void setHand(Hand* h);
+        void setHand(WarzoneCard::Hand* h);
 
-        vector<Territory*> toDefend();        
-        vector<Territory*> toAttack();        
-        void issueOrder();                         
+        vector<Territory*>* toDefend();        
+        vector<Territory*>* toAttack();        
+        void issueOrder(string orderType);                         
 };

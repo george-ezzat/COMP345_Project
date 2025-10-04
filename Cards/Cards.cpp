@@ -1,4 +1,6 @@
 #include "Cards.h"
+#include "../Player/Player.h"
+#include "../Orders/Orders.h"
 #include <algorithm>
 #include <stdexcept>
 
@@ -29,34 +31,44 @@ namespace WarzoneCard {
         type = t;
     }
 
-    void Card::play(WarzonePlayer::Player* player) {
- 
-        
+    void Card::play(Player* player) {
         if (!player) {
             return;
         }
 
+        Order* order = nullptr;
         std::cout << "Card::play() called for ";
+        
         switch (type) {
             case CardType::Bomb:
-                std::cout << "Bomb card - would create Bomb order";
+                std::cout << "Bomb card - creating Bomb order";
+                order = new Bomb();
                 break;
             case CardType::Reinforcement:
-                std::cout << "Reinforcement card - would create Reinforcement order";
+                std::cout << "Reinforcement card - creating Deploy order (reinforcement equivalent)";
+                order = new Deploy();
                 break;
             case CardType::Blockade:
-                std::cout << "Blockade card - would create Blockade order";
+                std::cout << "Blockade card - creating Blockade order";
+                order = new Blockade();
                 break;
             case CardType::Airlift:
-                std::cout << "Airlift card - would create Airlift order";
+                std::cout << "Airlift card - creating Airlift order";
+                order = new Airlift();
                 break;
             case CardType::Diplomacy:
-                std::cout << "Diplomacy card - would create Negotiate order";
+                std::cout << "Diplomacy card - creating Negotiate order";
+                order = new Negotiate();
                 break;
             case CardType::Unknown:
             default:
                 std::cout << "Unknown card - no action taken";
                 return;
+        }
+        
+        if (order && player->getOrdersList()) {
+            player->getOrdersList()->add(order);
+            std::cout << " - order added to player's order list";
         }
         std::cout << std::endl;
     }
@@ -171,6 +183,19 @@ namespace WarzoneCard {
         return drawnCard;
     }
 
+    bool Deck::drawToHand(Hand* hand) {
+        if (!hand) {
+            return false;
+        }
+        
+        Card* drawnCard = draw();
+        if (drawnCard) {
+            hand->addCardToHand(drawnCard);
+            return true;
+        }
+        return false;
+    }
+
     void Deck::returnToDeck(Card* card) {
         if (card) {
             cards->push_back(card);
@@ -236,7 +261,7 @@ namespace WarzoneCard {
         }
     }
 
-    void Hand::playCard(Card* c, WarzonePlayer::Player* player, Deck* deck) {
+    void Hand::playCard(Card* c, Player* player, Deck* deck) {
         if (!c || !player || !deck) {
             return;
         }

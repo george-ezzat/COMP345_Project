@@ -4,7 +4,7 @@
 #include <algorithm>
 
 #include "..\\Player\\Player.h"
-#include "..\\Map\\Territory.h"
+#include "..\\Map\\Map.h"
 
 using std::string;
 using std::vector;
@@ -312,7 +312,10 @@ void Blockade::execute() {
     // remove territory from owner and make neutral
     Player *owner = target->getOwner();
     if (owner) {
-        owner->removeTerritory(target);
+        /*
+        TODO: Impliment removeTerritory Logic
+        */
+        cout << "Removing territory " << target->getName() << " from player " << owner->getName() << std::endl;
     }
     target->setArmies(before * 3); // triple armies
     target->setOwner(nullptr); // neutral

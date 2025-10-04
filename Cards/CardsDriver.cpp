@@ -1,46 +1,7 @@
 #include "Cards.h"
+#include "../Player/Player.h"
+#include "../Orders/Orders.h"
 #include <iostream>
-
-
-#ifdef WZ_CARDS_STUB_DEPENDENCIES
-namespace WarzoneOrder {
-    class Order { 
-    public: 
-        virtual ~Order() = default; 
-    };
-    
-    class OrdersList {
-        std::vector<Order*> orders_;
-    public:
-        void addOrder(Order* o) { 
-            if (o) orders_.push_back(o); 
-        }
-        friend std::ostream& operator<<(std::ostream& os, const OrdersList& ol) {
-            return os << "OrdersList(size=" << ol.orders_.size() << ")";
-        }
-    };
-    
-    class Bomb : public Order {};
-    class Reinforcement : public Order {};
-    class Blockade : public Order {};
-    class Airlift : public Order {};
-    class Negotiate : public Order {};
-}
-
-namespace WarzonePlayer {
-    class Player {
-        WarzoneOrder::OrdersList* orders_{};
-    public:
-        void setPlayerOrders(WarzoneOrder::OrdersList* o) { 
-            orders_ = o; 
-        }
-        WarzoneOrder::OrdersList* getPlayerOrders() const { 
-            return orders_; 
-        }
-        void setHand(void*) {} 
-    };
-}
-#endif
 
 void testCards() {
     std::cout << "=== Testing Cards Module ===" << std::endl;
@@ -51,19 +12,20 @@ void testCards() {
     WarzoneCard::Hand hand;
     std::cout << "Initial hand: " << hand << std::endl;
     
-    WarzoneOrder::OrdersList orders;
-    WarzonePlayer::Player alice;
-    alice.setPlayerOrders(&orders);
+    OrdersList orders;
+    Player alice("Alice");
+    // Note: Player constructor should initialize OrdersList internally
     
-    std::cout << "\n=== Drawing 5 cards into hand ===" << std::endl;
+    std::cout << "\n=== Drawing cards into hand repeatedly ===" << std::endl;
     
-    for (int i = 0; i < 5; ++i) {
-        WarzoneCard::Card* drawnCard = deck.draw();
-        if (drawnCard) {
+    // Draw cards until we have a few different types or deck is empty
+    for (int i = 0; i < 7 && !deck.getCards().empty(); ++i) {
+        if (deck.drawToHand(&hand)) {
+            WarzoneCard::Card* drawnCard = hand.getHandCards().back();
             std::cout << "Drew: " << *drawnCard << std::endl;
-            hand.addCardToHand(drawnCard);
         } else {
             std::cout << "Failed to draw card (deck empty)" << std::endl;
+            break;
         }
     }
     
@@ -82,12 +44,18 @@ void testCards() {
     std::cout << "\nFinal state:" << std::endl;
     std::cout << "Hand: " << hand << std::endl;
     std::cout << "Deck: " << deck << std::endl;
-    std::cout << "Orders: " << orders << std::endl;
+    std::cout << "Player's Orders: ";
+    if (alice.getOrdersList()) {
+        std::cout << *alice.getOrdersList() << std::endl;
+    } else {
+        std::cout << "No orders list" << std::endl;
+    }
     
     std::cout << "\n=== Cards Module Test Complete ===" << std::endl;
 }
 
-#ifdef WZ_CARDS_STUB_DEPENDENCIES
+// Main function for standalone testing
+#ifndef MAIN_DRIVER_INCLUDED
 int main() {
     testCards();
     return 0;
