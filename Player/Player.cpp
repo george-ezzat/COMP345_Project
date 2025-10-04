@@ -2,33 +2,54 @@
 
 using namespace std;
 
-Player::Player(string name) : name(name) {
+Player::Player(const std::string& name) : name(name) {
     ordersList = new OrdersList();
     hand = nullptr;
-    territories = new vector<Territory*>();
+    territories = new std::vector<Territory*>();
+}
+
+// Copy constructor
+Player::Player(const Player& other) 
+    : name(other.name) {
+    ordersList = new OrdersList(*other.ordersList);
+    hand = other.hand ? new WarzoneCard::Hand(*other.hand) : nullptr;
+    territories = new std::vector<Territory*>(*other.territories);
+}
+
+// Assignment operator
+Player& Player::operator=(const Player& other) {
+    if (this != &other) {
+        name = other.name;
+        delete ordersList;
+        delete hand;
+        delete territories;
+        
+        ordersList = new OrdersList(*other.ordersList);
+        hand = other.hand ? new WarzoneCard::Hand(*other.hand) : nullptr;
+        territories = new std::vector<Territory*>(*other.territories);
+    }
+    return *this;
 }
 
 Player::~Player() {
     delete ordersList;
     delete hand;
-    // Clean up territories (but don't delete the Territory objects themselves
-    // as they might be owned by the game/map)
     delete territories;
 }
 
-string Player::getName() /*const */ {
+std::string Player::getName() const {
     return name;
 }
 
-vector<Territory*>* Player::getTerritories() /*const */ {
+std::vector<Territory*>* Player::getTerritories() const {
     return territories;
 }
 
-WarzoneCard::Hand* Player::getHand() /*const */ {
+WarzoneCard::Hand* Player::getHand() const {
     return hand;
 }
 
-OrdersList* Player::getOrdersList() /*const */ {
+OrdersList* Player::getOrdersList() const {
     return ordersList;
 }
 
@@ -40,22 +61,22 @@ void Player::setHand(WarzoneCard::Hand* h) {
     hand = h;
 }
 
-vector<Territory*>* Player::toDefend() {
-    cout << name << " deciding which territories to DEFEND..." ;
+std::vector<Territory*>* Player::toDefend() {
+    std::cout << name << " deciding which territories to DEFEND..." << std::endl;
     return territories;
 }
 
-vector<Territory*>* Player::toAttack() {
-    cout << name << " deciding which territories to Attack...";
-    vector<Territory*>* attackList = new vector<Territory*>();
+std::vector<Territory*>* Player::toAttack() {
+    std::cout << name << " deciding which territories to Attack..." << std::endl;
+    std::vector<Territory*>* attackList = new std::vector<Territory*>();
     Continent* europe = new Continent("Europe");
-    attackList->push_back(new Territory(1, "Ukrain", europe));
+    attackList->push_back(new Territory(1, "Ukraine", europe));
     attackList->push_back(new Territory(2, "Enemy Land B", europe));
     return attackList;
 }
 
-void Player::issueOrder(string orderType) {
-    cout << name << " issuing an order...";
+void Player::issueOrder(const std::string& orderType) {
+    std::cout << name << " issuing an order..." << std::endl;
     Order* newOrder = nullptr;
     if(orderType == "Advance") {
         newOrder = new Advance();
@@ -68,5 +89,13 @@ void Player::issueOrder(string orderType) {
     } else if(orderType == "Negotiate") {
         newOrder = new Negotiate();
     }
-    ordersList->add(newOrder);
+    if (newOrder) {
+        ordersList->add(newOrder);
+    }
+}
+
+std::ostream& operator<<(std::ostream& os, const Player& player) {
+    os << "Player(" << player.getName() 
+       << ", Territories:" << player.getTerritories()->size() << ")";
+    return os;
 }

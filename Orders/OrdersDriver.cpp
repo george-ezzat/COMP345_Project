@@ -6,7 +6,6 @@ void testOrdersLists() {
 
     OrdersList list;
 
-    // Orders with nullptr targets for now
     list.add(new Deploy(3, nullptr));
     list.add(new Advance(2, nullptr, nullptr));
     list.add(new Bomb(nullptr));

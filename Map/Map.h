@@ -10,14 +10,11 @@
 class Continent;
 class Player;
 
-//Territory class (represents a territory on the map) 
 class Territory {
 public:
     Territory(int id, const std::string& name, Continent* continent);
-    //Copy constructor 
-    Territory(const Territory& other);         
-    //Assignment operator  
-    Territory& operator=(const Territory& other); 
+    Territory(const Territory& other);  // Copy constructor       
+    Territory& operator=(const Territory& other);  // Assignment operator
     ~Territory() {};                              
 
     int getId() const;
@@ -43,18 +40,11 @@ private:
     int armies;
 };
 
-// Continent class (holds multiple terretories)
 class Continent {
 public:
     Continent(const std::string& name);
-
-    //Copy constructor
-    Continent(const Continent& other); 
-
-    //Assignment operator           
-    Continent& operator=(const Continent& other); 
-
-    //Destructor
+    Continent(const Continent& other);  // Copy constructor
+    Continent& operator=(const Continent& other);  // Assignment operator
     ~Continent() {};                                  
 
     std::string getName() const;
@@ -65,19 +55,14 @@ public:
 
 private:
     std::string name;
-    // pointers to territories
     std::vector<Territory*> territories; 
 };
 
-//Map class that has continents and territories 
 class Map {
 public:
     Map();
-    // Copy constructor
-    Map(const Map& other); 
-    // Assignment operator          
-    Map& operator=(const Map& other);
-    // Destructor 
+    Map(const Map& other);  // Copy constructor
+    Map& operator=(const Map& other);  // Assignment operator
     ~Map();                           
 
     void addContinent(Continent* c);
@@ -100,7 +85,6 @@ private:
     bool territoriesHaveUniqueContinent() const;
 };
 
-//MapLoader classes that loads the map files and parses the files for validation
 class MapLoader {
 public:
     MapLoader();

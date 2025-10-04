@@ -3,34 +3,27 @@
 #include <algorithm>
 #include <sstream>
 
-// NEW: Add includes for the component headers
-// NOTE: Adjust paths if your GameEngine.cpp is not at the same level as the folders
 #include "../Map/Map.h" 
-#include "../Cards/Cards.h"  // Contains WarzoneCard::Deck
+#include "../Cards/Cards.h"
 #include "../Player/Player.h" 
 
-// Constructor
 GameEngine::GameEngine() {
-    // game states
     states = new std::string[8]{
         "start", "map loaded", "map validated", "players added",
         "assign reinforcement", "issue orders", "execute orders", "win"
     };
 
-    // transitions
     transitions = new std::string[11]{
         "loadmap", "validatemap", "addplayer", "assigncountries",
         "issueorder", "endissueorders", "execorder", "endexecorders",
         "win", "play", "end"
     };
 
-    // start at the initial state
     currentState = new int(0);
 
-    // NEW: Initialize all component pointers
-    gameMap = nullptr; // Map is loaded later, starts null
-    gameDeck = new WarzoneCard::Deck(); // Deck is created at start
-    players = new std::vector<Player*>(); // The vector itself is a pointer
+    gameMap = nullptr;
+    gameDeck = new WarzoneCard::Deck();
+    players = new std::vector<Player*>();
 }
 
 // Copy constructor
@@ -48,31 +41,6 @@ GameEngine::GameEngine(const GameEngine& other) {
     }
 
     observers = other.observers;
-}
-
-// Destructor
-GameEngine::~GameEngine() {
-    delete[] states;
-    delete[] transitions;
-    delete currentState;
-    // NEW: Clean up the game components
-    delete gameDeck;
-    gameDeck = nullptr;
-
-    // Clean up all Player objects in the vector
-    for (Player* p : *players) {
-        delete p;
-    }
-    players->clear();
-    // Then clean up the vector pointer itself
-    delete players;
-    players = nullptr;
-
-    // Clean up map only if it was loaded
-    if (gameMap != nullptr) {
-        delete gameMap;
-        gameMap = nullptr;
-    }
 }
 
 // Assignment operator
@@ -99,13 +67,31 @@ GameEngine& GameEngine::operator=(const GameEngine& other) {
     return *this;
 }
 
-//  insertion operator
+GameEngine::~GameEngine() {
+    delete[] states;
+    delete[] transitions;
+    delete currentState;
+    delete gameDeck;
+    gameDeck = nullptr;
+
+    for (Player* p : *players) {
+        delete p;
+    }
+    players->clear();
+    delete players;
+    players = nullptr;
+
+    if (gameMap != nullptr) {
+        delete gameMap;
+        gameMap = nullptr;
+    }
+}
+
 std::ostream& operator<<(std::ostream& os, const GameEngine& engine) {
     os << "Current Game State: " << engine.states[*(engine.currentState)];
     return os;
 }
 
-// commands for current state (same as the one in the assignment diagram)
 bool GameEngine::validateCommand(const std::string& command) const {
     switch (*currentState) {
     case 0: // start
@@ -129,7 +115,6 @@ bool GameEngine::validateCommand(const std::string& command) const {
     }
 }
 
-// if command valid change/stay state
 bool GameEngine::executeCommand(const std::string& command) {
     if (!validateCommand(command)) {
         std::cout << "Invalid command '" << command << "' for current state '"
@@ -137,17 +122,13 @@ bool GameEngine::executeCommand(const std::string& command) {
         return false;
     }
 
-    if (*currentState == 0) { // start
-        // 1. loadmap <filename>
+    if (*currentState == 0) {
         if (command.rfind("loadmap", 0) == 0) {
-            
-            // Extract the filename from the command string
             std::stringstream ss(command);
             std::string cmd;
             std::string filename;
             ss >> cmd >> filename; 
             
-            // *** INTEGRATION POINT 1: MapLoader ***
             MapLoader loader; 
             Map* loadedMap = loader.loadMap(filename);
 
@@ -155,7 +136,7 @@ bool GameEngine::executeCommand(const std::string& command) {
                 if (gameMap != nullptr) delete gameMap; 
                 gameMap = loadedMap;
                 std::cout << "Map " << filename << " loaded successfully." << std::endl;
-                *currentState = 1; // move to "map loaded" state
+                *currentState = 1;
                 notify();
                 return true;
             } else {
@@ -164,13 +145,11 @@ bool GameEngine::executeCommand(const std::string& command) {
             }
         }
     }
-    else if (*currentState == 1) { // map loaded
-        // 2. validatemap
+    else if (*currentState == 1) {
         if (command == "validatemap") {
-            // *** INTEGRATION POINT 2: Map Validation ***
             if (gameMap != nullptr && gameMap->validate()) { 
                 std::cout << "Map successfully validated." << std::endl;
-                *currentState = 2; // move to "map validated" state
+                *currentState = 2;
                 notify();
                 return true;
             } else {
@@ -178,15 +157,13 @@ bool GameEngine::executeCommand(const std::string& command) {
                 return false;
             }
         }
-        }
         else if (command == "validatemap") {
-            *currentState = 2; // move to "map validated"
+            *currentState = 2;
             notify();
             return true;
         }
-    //}
-    else if (*currentState == 2) { // map validated
-        // 3. addplayer <name>
+    }
+    else if (*currentState == 2) {
         if (command.rfind("addplayer", 0) == 0) {
             
             std::stringstream ss(command);
@@ -199,23 +176,19 @@ bool GameEngine::executeCommand(const std::string& command) {
                 return false;
             }
 
-            // *** INTEGRATION POINT 3: Player Creation ***
             Player* newPlayer = new Player(name); 
             players->push_back(newPlayer);
             std::cout << "Player " << name << " added. Total players: " << players->size() << std::endl;
             
-            // Transition to "players added" state after adding the first player
-            *currentState = 3; // move to "players added" state
+            *currentState = 3;
             notify();
             return true;
-            }
+        }
         
-        // 4. gamestart (to start the main assignment phase)
         if (command == "gamestart") {
             if (players->size() >= 2) {
                 std::cout << "Game started. Moving to 'players added' state to begin setup." << std::endl;
-                // NOTE: The logic for assigncountries will happen between states 2 and 3 in the final version.
-                *currentState = 3; // move to "players added" state
+                *currentState = 3;
                 notify();
                 return true;
             } else {
@@ -224,7 +197,7 @@ bool GameEngine::executeCommand(const std::string& command) {
             }
         }
     }
-    else if (*currentState == 3) { // players added
+    else if (*currentState == 3) {
         if (command.rfind("addplayer", 0) == 0) {
             std::stringstream ss(command);
             std::string cmd;
@@ -236,65 +209,60 @@ bool GameEngine::executeCommand(const std::string& command) {
                 return false;
             }
 
-            // *** INTEGRATION POINT 3: Player Creation ***
             Player* newPlayer = new Player(name); 
             players->push_back(newPlayer);
             std::cout << "Player " << name << " added. Total players: " << players->size() << std::endl;
             
-            // Stay in "players added" state
             notify();
             return true;
         }
         else if (command == "assigncountries") {
-            *currentState = 4; // move to "assign reinforcement"
+            *currentState = 4;
             notify();
             return true;
         }
     }
-    else if (*currentState == 4) { // assign reinforcement
+    else if (*currentState == 4) {
         if (command == "issueorder") {
-            *currentState = 5; // move to "issue orders"
+            *currentState = 5;
             notify();
             return true;
         }
     }
-    else if (*currentState == 5) { // issue orders
+    else if (*currentState == 5) {
         if (command == "issueorder") {
-            // Stay in the same state
             notify();
             return true;
         }
         else if (command == "endissueorders") {
-            *currentState = 6; // move to "execute orders"
+            *currentState = 6;
             notify();
             return true;
         }
     }
-    else if (*currentState == 6) { // execute orders
+    else if (*currentState == 6) {
         if (command == "execorder") {
-            // Stay in the same state
             notify();
             return true;
         }
         else if (command == "endexecorders") {
-            *currentState = 4; // go back to "assign reinforcement"
+            *currentState = 4;
             notify();
             return true;
         }
         else if (command == "win") {
-            *currentState = 7; // move to "win" state
+            *currentState = 7;
             notify();
             return true;
         }
     }
-    else if (*currentState == 7) { // win
+    else if (*currentState == 7) {
         if (command == "play") {
-            *currentState = 0; // go back to "start"
+            *currentState = 0;
             notify();
             return true;
         }
         else if (command == "end") {
-            // Game over
             std::cout << "Game ended" << std::endl;
             return true;
         }
@@ -303,12 +271,10 @@ bool GameEngine::executeCommand(const std::string& command) {
     return false;
 }
 
-// get state name
 std::string GameEngine::getCurrentState() const {
     return states[*currentState];
 }
 
-// print current state
 void GameEngine::printCurrentState() const {
     std::cout << "Current state: " << states[*currentState] << std::endl;
 }
@@ -323,8 +289,6 @@ void GameEngine::removeObserver(Observer* observer) {
 
 void GameEngine::notify() {
     for (auto observer : observers) {
-        // Assuming observer has an update method
-        // observer->update(this);
     }
 }
 

@@ -9,10 +9,9 @@
 
 class Observer;
 
-// 1. ADD FORWARD DECLARATIONS HERE
 class Map;
 class Player;
-namespace WarzoneCard { class Deck; } // Deck is in a namespace, as seen in Cards.h
+namespace WarzoneCard { class Deck; }
 
 class GameEngine {
 private:
@@ -21,26 +20,21 @@ private:
     int* currentState;
     std::vector<Observer*> observers;
 
-    // 2. ADD POINTERS TO GAME COMPONENTS
     Map* gameMap;
     WarzoneCard::Deck* gameDeck;
-    // The vector itself MUST also be a pointer to comply with the rule
     std::vector<Player*>* players; 
 
 public:
-    // Constructors/Destructor
     GameEngine();
-    GameEngine(const GameEngine& other); // Copy constructor
+    GameEngine(const GameEngine& other);  // Copy constructor
     ~GameEngine();
 
-    // methods
     bool validateCommand(const std::string& command) const;
     bool executeCommand(const std::string& command);
     std::string getCurrentState() const;
     void printCurrentState() const;
 
-    // operator overloads (since they are objects as spoken in class)
-    GameEngine& operator=(const GameEngine& other);
+    GameEngine& operator=(const GameEngine& other);  // Assignment operator
     friend std::ostream& operator<<(std::ostream& os, const GameEngine& engine);
 
     void addObserver(Observer* observer);

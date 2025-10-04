@@ -12,10 +12,10 @@ class Territory;
 
 class Order {
 public:
-    Order();                                      // default
+    Order();  // Default constructor
     explicit Order(const std::string &type, Player *issuer = nullptr);
-    Order(const Order &other);                    // copy constructor
-    Order &operator=(const Order &other);         
+    Order(const Order &other);  // Copy constructor
+    Order &operator=(const Order &other);  // Assignment operator       
     virtual ~Order();                             
 
     virtual bool validate() = 0;
@@ -25,13 +25,11 @@ public:
     friend std::ostream &operator<<(std::ostream &os, const Order &o);
 
 protected:
-    std::string *orderType;   // textual name
-    std::string *effect;      // effect after execute()
-    bool *executed;           // whether execute() has run successfully
-    Player *issuer;           // who issued the order
+    std::string *orderType;
+    std::string *effect;
+    bool *executed;
+    Player *issuer;
 };
-
-// Derived orders declarations
 
 class Deploy : public Order {
 public:
@@ -46,8 +44,8 @@ public:
     Order *clone() const override;
 
 private:
-    int *armies;              // how many armies to place
-    Territory *territory;     // target territory
+    int *armies;
+    Territory *territory;
 };
 
 class Advance : public Order {
@@ -134,8 +132,6 @@ private:
     Player *targetPlayer;
 };
 
-// OrdersList
-
 class OrdersList {
 public:
     OrdersList();
@@ -143,13 +139,8 @@ public:
     OrdersList &operator=(const OrdersList &other);
     ~OrdersList();
 
-    // add an order
     void add(Order *o);
-
-    // remove an order
     bool remove(int index);
-
-    // move an order
     bool move(int from, int to);
 
     std::vector<Order *> *getOrders() const;
@@ -157,10 +148,9 @@ public:
     friend std::ostream &operator<<(std::ostream &os, const OrdersList &ol);
 
 private:
-    std::vector<Order *> *orders; // pointer to vector per requirement
+    std::vector<Order *> *orders;
 };
 
-// demo
 void testOrdersLists();
 
-#endif // ORDERS_H
+#endif

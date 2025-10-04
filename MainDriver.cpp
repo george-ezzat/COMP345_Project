@@ -7,14 +7,12 @@
 #include "Player/Player.h"
 #include "Game_Engine/GameEngine.h"
 
-// Function declarations
 void testCards();
 void testLoadMaps();
 void testOrdersLists();
 void testPlayers();
 void testGameStates();
 
-// Include driver implementations
 #include "Cards/CardsDriver.cpp"
 #include "Map/MapDriver.cpp"
 #include "Orders/OrdersDriver.cpp"
@@ -22,7 +20,6 @@ void testGameStates();
 #include "Game_Engine/GameEngineDriver.cpp"
 
 int main() {
-    // Call every test function in the driver classes
     std::cout << "\n==================== MAIN DRIVER ====================" << std::endl;
     
     std::cout << "\n--- Testing Game States ---" << std::endl;

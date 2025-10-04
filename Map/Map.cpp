@@ -5,11 +5,27 @@
 #include <unordered_set>
 #include <unordered_map>
 
-//Signle territory in the map that has continent, owner and army
 Territory::Territory(int id, const std::string& name, Continent* continent)
     : id(id), name(name), continent(continent), owner(nullptr), armies(0) {}
 
-//Getters
+// Copy constructor
+Territory::Territory(const Territory& other) 
+    : id(other.id), name(other.name), continent(other.continent), 
+      adjacents(other.adjacents), owner(other.owner), armies(other.armies) {}
+
+// Assignment operator
+Territory& Territory::operator=(const Territory& other) {
+    if (this != &other) {
+        id = other.id;
+        name = other.name;
+        continent = other.continent;
+        adjacents = other.adjacents;
+        owner = other.owner;
+        armies = other.armies;
+    }
+    return *this;
+}
+
 int Territory::getId() const { return id; }
 std::string Territory::getName() const { return name; }
 Continent* Territory::getContinent() const { return continent; }
@@ -22,17 +38,55 @@ Player* Territory::getOwner() const { return owner; }
 void Territory::setArmies(int n) { armies = n; }
 int Territory::getArmies() const { return armies; }
 
-//Single continent in the map that contains multiple territories 
 Continent::Continent(const std::string& name) : name(name) {}
+
+// Copy constructor
+Continent::Continent(const Continent& other) 
+    : name(other.name), territories(other.territories) {}
+
+// Assignment operator
+Continent& Continent::operator=(const Continent& other) {
+    if (this != &other) {
+        name = other.name;
+        territories = other.territories;
+    }
+    return *this;
+}
 std::string Continent::getName() const { return name; }
 
-//Add territories to the continent 
 void Continent::addTerritory(Territory* t) { territories.push_back(t); }
 const std::vector<Territory*>& Continent::getTerritories() const { return territories; }
 
-//Full map with continent and territories 
 Map::Map() {}
-//To clean up memory when a map object is deleted 
+
+// Copy constructor
+Map::Map(const Map& other) {
+    for (auto c : other.continents) {
+        continents.push_back(new Continent(*c));
+    }
+    for (auto t : other.territories) {
+        territories.push_back(new Territory(*t));
+    }
+}
+
+// Assignment operator
+Map& Map::operator=(const Map& other) {
+    if (this != &other) {
+        for (auto t : territories) delete t;
+        for (auto c : continents) delete c;
+        territories.clear();
+        continents.clear();
+        
+        for (auto c : other.continents) {
+            continents.push_back(new Continent(*c));
+        }
+        for (auto t : other.territories) {
+            territories.push_back(new Territory(*t));
+        }
+    }
+    return *this;
+}
+
 Map::~Map() {
     for (auto t : territories) delete t;
     for (auto c : continents) delete c;
@@ -41,7 +95,6 @@ Map::~Map() {
 void Map::addContinent(Continent* c) { continents.push_back(c); }
 void Map::addTerritory(Territory* t) { territories.push_back(t); }
 
-//Get a territory by its id 
 Territory* Map::getTerritory(int id) const {
     for (auto t : territories) {
         if (t->getId() == id) return t;
@@ -49,22 +102,15 @@ Territory* Map::getTerritory(int id) const {
     return nullptr;
 }
 
-
 const std::vector<Continent*>& Map::getContinents() const { return continents; }
 const std::vector<Territory*>& Map::getTerritories() const { return territories; }
 
-//Validate the map to check conectivity with territories and continents 
 bool Map::validate() const {
     bool graphConnected = isConnectedGraph();
     bool uniqueContinents = territoriesHaveUniqueContinent();
-    
-    // Note: Continent connectivity validation removed as it's too restrictive for real maps
-    // where continents may have territories only connected through other continents
-    
     return graphConnected && uniqueContinents;
 }
 
-//Check if the all the territories are connected 
 static bool isTerritoriesConnected(const std::vector<Territory*>& nodes) {
     if (nodes.empty()) return true;
     std::unordered_set<int> visited;
@@ -81,16 +127,13 @@ static bool isTerritoriesConnected(const std::vector<Territory*>& nodes) {
             }
         }
     }
-    //Graph is connected if we visted all the nodes
     return visited.size() == nodes.size();
 }
 
-//Check if the entire map is connected 
 bool Map::isConnectedGraph() const {
     return isTerritoriesConnected(territories);
 }
 
-//Check if each continent is connected 
 bool Map::continentsAreConnected() const {
     for (auto c : continents) {
         if (c->getTerritories().empty()) {
@@ -103,7 +146,6 @@ bool Map::continentsAreConnected() const {
     return true;
 }
 
-//Check if all the territories have a unique continent 
 bool Map::territoriesHaveUniqueContinent() const {
     std::unordered_set<int> ids;
     for (auto c : continents) {
@@ -114,10 +156,8 @@ bool Map::territoriesHaveUniqueContinent() const {
     return true;
 }
 
-//Loads the maps from a .map file
 MapLoader::MapLoader() {}
 
-//Call validate funcition to validatde each .map file
 Map* MapLoader::loadMap(const std::string& filename) {
     Map* map = parseFile(filename);
     if (map && map->validate()) {
@@ -129,7 +169,6 @@ Map* MapLoader::loadMap(const std::string& filename) {
     }
 }
 
-// Helper function to trim whitespace
 std::string trim(const std::string& str) {
     size_t start = str.find_first_not_of(" \t\r\n");
     if (start == std::string::npos) return "";
@@ -137,7 +176,6 @@ std::string trim(const std::string& str) {
     return str.substr(start, end - start + 1);
 }
 
-// Helper function to split string by delimiter
 std::vector<std::string> split(const std::string& str, char delimiter) {
     std::vector<std::string> tokens;
     std::istringstream ss(str);
@@ -151,7 +189,6 @@ std::vector<std::string> split(const std::string& str, char delimiter) {
     return tokens;
 }
 
-//Parse the .map files
 Map* MapLoader::parseFile(const std::string& filename) {
     std::ifstream file(filename);
     if (!file.is_open()) return nullptr;
@@ -257,4 +294,23 @@ Map* MapLoader::parseFile(const std::string& filename) {
     }
     
     return map;
+}
+
+// Stream insertion operators
+std::ostream& operator<<(std::ostream& os, const Territory& t) {
+    os << "Territory(" << t.getName() << ", ID:" << t.getId() 
+       << ", Continent:" << (t.getContinent() ? t.getContinent()->getName() : "None")
+       << ", Armies:" << t.getArmies() << ")";
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const Continent& c) {
+    os << "Continent(" << c.getName() << ", Territories:" << c.getTerritories().size() << ")";
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const Map& map) {
+    os << "Map(Continents:" << map.getContinents().size() 
+       << ", Territories:" << map.getTerritories().size() << ")";
+    return os;
 }

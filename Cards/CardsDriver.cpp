@@ -14,11 +14,9 @@ void testCards() {
     
     OrdersList orders;
     Player alice("Alice");
-    // Note: Player constructor should initialize OrdersList internally
     
     std::cout << "\n=== Drawing cards into hand repeatedly ===" << std::endl;
     
-    // Draw cards until we have a few different types or deck is empty
     for (int i = 0; i < 7 && !deck.getCards().empty(); ++i) {
         if (deck.drawToHand(&hand)) {
             WarzoneCard::Card* drawnCard = hand.getHandCards().back();
@@ -54,7 +52,6 @@ void testCards() {
     std::cout << "\n=== Cards Module Test Complete ===" << std::endl;
 }
 
-// Main function for standalone testing
 #ifndef MAIN_DRIVER_INCLUDED
 int main() {
     testCards();

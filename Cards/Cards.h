@@ -4,7 +4,6 @@
 #include <iostream>
 #include <random>
 
-// Forward declarations
 class Player;
 class Order;
 class OrdersList;
@@ -14,7 +13,6 @@ class Airlift;
 class Negotiate;
 
 namespace WarzoneCard {
-    // Forward declaration within namespace
     class Hand;
 
     enum class CardType { 
@@ -63,7 +61,7 @@ namespace WarzoneCard {
         void setCards(const std::vector<Card*>& newCards);
         
         Card* draw();
-        bool drawToHand(Hand* hand);  // Draw a card and add it to the hand
+        bool drawToHand(Hand* hand);
         void returnToDeck(Card* card);
         
         friend std::ostream& operator<<(std::ostream& os, const Deck& deck);
