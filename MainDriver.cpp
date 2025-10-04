@@ -13,6 +13,8 @@ void testOrdersLists();
 void testPlayers();
 void testGameStates();
 
+#define MAIN_DRIVER_INCLUDED
+
 #include "Cards/CardsDriver.cpp"
 #include "Map/MapDriver.cpp"
 #include "Orders/OrdersDriver.cpp"

@@ -7,23 +7,6 @@ void testGameStates() {
     std::cout << "=== Testing Game Engine States ===" << std::endl;
 
     GameEngine* engine = new GameEngine(); 
-
-    #ifdef MAIN_DRIVER_INCLUDED
-    std::cout << "Running automated GameEngine state transition demo:" << std::endl;
-    
-    engine->printCurrentState();
-    
-    std::string testCommands[] = {"loadmap Map/Asia.map", "validatemap", "addplayer Player1", "addplayer Player2", "assigncountries", "issueorder", "endissueorders", "execorder", "win", "end"};
-    
-    for (const std::string& cmd : testCommands) {
-        std::cout << "\nExecuting command: " << cmd << std::endl;
-        engine->executeCommand(cmd);
-        engine->printCurrentState();
-    }
-    
-    std::cout << "\nGameEngine automated test complete." << std::endl;
-    
-    #else
     std::string command;
     bool continueGame = true;
 
@@ -36,7 +19,7 @@ void testGameStates() {
         std::cout << "Enter command: ";
         std::getline(std::cin, command);
 
-        if (command == "exit") {
+        if (command == "end") {
             std::cout << "Exiting game engine test." << std::endl;
             continueGame = false;
         }
@@ -46,7 +29,6 @@ void testGameStates() {
 
         std::cout << std::endl;
     }
-    #endif
     
     delete engine;
 }
