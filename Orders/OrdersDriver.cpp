@@ -1,6 +1,7 @@
 #include "Orders.h"
 #include <iostream>
 
+// Test function demonstrating Orders and OrdersList functionality
 void testOrdersLists() {
     std::cout << "Orders minimal demo" << std::endl << std::endl;
 

@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 
+// Test function demonstrating GameEngine state transitions
 void testGameStates() {
     std::cout << "=== Testing Game Engine States ===" << std::endl;
 

@@ -92,6 +92,7 @@ std::ostream& operator<<(std::ostream& os, const GameEngine& engine) {
     return os;
 }
 
+// Validate if a command is allowed in the current state
 bool GameEngine::validateCommand(const std::string& command) const {
     switch (*currentState) {
     case 0: // start
@@ -115,6 +116,7 @@ bool GameEngine::validateCommand(const std::string& command) const {
     }
 }
 
+// Execute a command and transition to the appropriate state
 bool GameEngine::executeCommand(const std::string& command) {
     if (!validateCommand(command)) {
         std::cout << "Invalid command '" << command << "' for current state '"
@@ -271,27 +273,33 @@ bool GameEngine::executeCommand(const std::string& command) {
     return false;
 }
 
+// Get the current state as a string
 std::string GameEngine::getCurrentState() const {
     return states[*currentState];
 }
 
+// Print the current state to console
 void GameEngine::printCurrentState() const {
     std::cout << "Current state: " << states[*currentState] << std::endl;
 }
 
+// Add an observer to the observer list
 void GameEngine::addObserver(Observer* observer) {
     observers.push_back(observer);
 }
 
+// Remove an observer from the observer list
 void GameEngine::removeObserver(Observer* observer) {
     observers.erase(std::remove(observers.begin(), observers.end(), observer), observers.end());
 }
 
+// Notify all observers of state changes
 void GameEngine::notify() {
     for (auto observer : observers) {
     }
 }
 
+// Generate log string for the current game engine state
 std::string GameEngine::stringToLog() const {
     return "GameEngine State Change: Current state is " + states[*currentState];
 }

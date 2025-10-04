@@ -53,19 +53,23 @@ OrdersList* Player::getOrdersList() const {
     return ordersList;
 }
 
+// Add a territory to the player's owned territories
 void Player::addTerritory(Territory* t) {
     territories->push_back(t);
 }
 
+// Set the player's hand of cards
 void Player::setHand(WarzoneCard::Hand* h) {
     hand = h;
 }
 
+// Return list of territories to defend, prioritized by importance
 std::vector<Territory*>* Player::toDefend() {
     std::cout << name << " deciding which territories to DEFEND..." << std::endl;
     return territories;
 }
 
+// Return list of territories to attack (adjacent to owned territories)
 std::vector<Territory*>* Player::toAttack() {
     std::cout << name << " deciding which territories to Attack..." << std::endl;
     std::vector<Territory*>* attackList = new std::vector<Territory*>();
@@ -75,6 +79,7 @@ std::vector<Territory*>* Player::toAttack() {
     return attackList;
 }
 
+// Issue an order - creates and adds an order to the player's orders list
 void Player::issueOrder(const std::string& orderType) {
     std::cout << name << " issuing an order..." << std::endl;
     Order* newOrder = nullptr;

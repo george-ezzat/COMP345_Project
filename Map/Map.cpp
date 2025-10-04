@@ -30,11 +30,14 @@ int Territory::getId() const { return id; }
 std::string Territory::getName() const { return name; }
 Continent* Territory::getContinent() const { return continent; }
 
+// Add an adjacent territory to this territory's adjacency list
 void Territory::addAdjacentTerritory(Territory* t) { adjacents.push_back(t); }
 const std::vector<Territory*>& Territory::getAdjacents() const { return adjacents; }
 
+// Set the owner of this territory
 void Territory::setOwner(Player* p) { owner = p; }
 Player* Territory::getOwner() const { return owner; }
+// Set the number of armies on this territory
 void Territory::setArmies(int n) { armies = n; }
 int Territory::getArmies() const { return armies; }
 
@@ -54,6 +57,7 @@ Continent& Continent::operator=(const Continent& other) {
 }
 std::string Continent::getName() const { return name; }
 
+// Add a territory to this continent
 void Continent::addTerritory(Territory* t) { territories.push_back(t); }
 const std::vector<Territory*>& Continent::getTerritories() const { return territories; }
 
@@ -92,9 +96,12 @@ Map::~Map() {
     for (auto c : continents) delete c;
 }
 
+// Add a continent to the map
 void Map::addContinent(Continent* c) { continents.push_back(c); }
+// Add a territory to the map
 void Map::addTerritory(Territory* t) { territories.push_back(t); }
 
+// Find and return a territory by its ID
 Territory* Map::getTerritory(int id) const {
     for (auto t : territories) {
         if (t->getId() == id) return t;
@@ -105,6 +112,7 @@ Territory* Map::getTerritory(int id) const {
 const std::vector<Continent*>& Map::getContinents() const { return continents; }
 const std::vector<Territory*>& Map::getTerritories() const { return territories; }
 
+// Validate the map structure for game requirements
 bool Map::validate() const {
     bool graphConnected = isConnectedGraph();
     bool uniqueContinents = territoriesHaveUniqueContinent();
@@ -130,10 +138,12 @@ static bool isTerritoriesConnected(const std::vector<Territory*>& nodes) {
     return visited.size() == nodes.size();
 }
 
+// Check if the map forms a connected graph
 bool Map::isConnectedGraph() const {
     return isTerritoriesConnected(territories);
 }
 
+// Check if each continent is a connected subgraph
 bool Map::continentsAreConnected() const {
     for (auto c : continents) {
         if (c->getTerritories().empty()) {
@@ -146,6 +156,7 @@ bool Map::continentsAreConnected() const {
     return true;
 }
 
+// Check if each territory belongs to exactly one continent
 bool Map::territoriesHaveUniqueContinent() const {
     std::unordered_set<int> ids;
     for (auto c : continents) {

@@ -3,6 +3,7 @@
 #include "../Orders/Orders.h"
 #include <iostream>
 
+// Test the complete Cards module functionality including deck, hand, and card playing
 void testCards() {
     std::cout << "=== Testing Cards Module ===" << std::endl;
     
@@ -53,6 +54,7 @@ void testCards() {
 }
 
 #ifndef MAIN_DRIVER_INCLUDED
+// Main function for standalone Cards module testing
 int main() {
     testCards();
     return 0;

@@ -1,6 +1,7 @@
 #include "Player.h"
 using namespace std;
 
+// Test function demonstrating Player class functionality
 void testPlayers() {
     Player* p1 = new Player("Alice");
 

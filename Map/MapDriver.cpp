@@ -2,6 +2,7 @@
 #include <vector>
 #include "Map.h" 
 
+// Test function demonstrating Map validation and functionality
 void testLoadMaps() {
     MapLoader loader;
 

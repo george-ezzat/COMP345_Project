@@ -16,6 +16,7 @@ static std::string safeDeref(const std::string *p) {
     return std::string("(null)");
 }
 
+// Default constructor - creates an order with unknown type
 Order::Order() {
     orderType = new std::string("Unknown");
     effect = new std::string("");
@@ -23,6 +24,7 @@ Order::Order() {
     issuer = nullptr;
 }
 
+// Constructor with type and issuer - creates an order with specified parameters
 Order::Order(const std::string &type, Player *iss) {
     orderType = new std::string(type);
     effect = new std::string("");
@@ -105,6 +107,7 @@ Deploy::~Deploy() {
     delete armies;
 }
 
+// Validate deploy order - checks if territory and army count are valid
 bool Deploy::validate() {
     if (!territory) {
         *effect = "Invalid: no territory specified";
@@ -117,6 +120,7 @@ bool Deploy::validate() {
     return true;
 }
 
+// Execute deploy order - adds armies to the specified territory
 void Deploy::execute() {
     if (!validate()) {
         *executed = false;
@@ -172,6 +176,7 @@ Advance::~Advance() {
     delete armies;
 }
 
+// Validate advance order - checks if territories and army count are valid
 bool Advance::validate() {
     if (!source || !destination) {
         *effect = "Invalid: missing source or destination";
@@ -184,6 +189,7 @@ bool Advance::validate() {
     return true;
 }
 
+// Execute advance order - moves armies from source to target territory
 void Advance::execute() {
     if (!validate()) {
         *executed = false;
@@ -232,6 +238,7 @@ Bomb &Bomb::operator=(const Bomb &other) {
 Bomb::~Bomb() {
 }
 
+// Validate bomb order - checks if target territory is valid
 bool Bomb::validate() {
     if (!target) {
         *effect = "Invalid: no target";
@@ -240,6 +247,7 @@ bool Bomb::validate() {
     return true;
 }
 
+// Execute bomb order - destroys half the armies on target territory
 void Bomb::execute() {
     if (!validate()) {
         *executed = false;
@@ -281,6 +289,7 @@ Blockade &Blockade::operator=(const Blockade &other) {
 Blockade::~Blockade() {
 }
 
+// Validate blockade order - checks if territory is valid and owned by issuer
 bool Blockade::validate() {
     if (!target) {
         *effect = "Invalid: no target";
@@ -298,6 +307,7 @@ bool Blockade::validate() {
     return true;
 }
 
+// Execute blockade order - doubles armies and transfers territory to neutral
 void Blockade::execute() {
     if (!validate()) {
         *executed = false;
@@ -355,6 +365,7 @@ Airlift::~Airlift() {
     delete armies;
 }
 
+// Validate airlift order - checks if territories and army count are valid
 bool Airlift::validate() {
     if (!source || !destination) {
         *effect = "Invalid: missing source/destination";
@@ -367,6 +378,7 @@ bool Airlift::validate() {
     return true;
 }
 
+// Execute airlift order - moves armies between any owned territories
 void Airlift::execute() {
     if (!validate()) {
         *executed = false;
@@ -414,6 +426,7 @@ Negotiate &Negotiate::operator=(const Negotiate &other) {
 Negotiate::~Negotiate() {
 }
 
+// Validate negotiate order - checks if target player is valid and different
 bool Negotiate::validate() {
     if (!targetPlayer) {
         *effect = "Invalid: no player";
@@ -422,6 +435,7 @@ bool Negotiate::validate() {
     return true;
 }
 
+// Execute negotiate order - prevents attacks between players for this turn
 void Negotiate::execute() {
     if (!validate()) {
         *executed = false;
@@ -474,10 +488,12 @@ OrdersList::~OrdersList() {
     delete orders;
 }
 
+// Add an order to the end of the orders list
 void OrdersList::add(Order *o) {
     orders->push_back(o);
 }
 
+// Remove an order at the specified index from the list
 bool OrdersList::remove(int index) {
     if (index < 0 || index >= static_cast<int>(orders->size())) {
         return false;
@@ -487,6 +503,7 @@ bool OrdersList::remove(int index) {
     return true;
 }
 
+// Move an order from one position to another in the list
 bool OrdersList::move(int from, int to) {
     int size = static_cast<int>(orders->size());
     if (from < 0 || from >= size) {
