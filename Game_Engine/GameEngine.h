@@ -9,6 +9,10 @@
 
 class Observer;
 
+class Map;
+class Player;
+namespace WarzoneCard { class Deck; }
+
 class GameEngine {
 private:
     std::string* states;
@@ -16,20 +20,21 @@ private:
     int* currentState;
     std::vector<Observer*> observers;
 
+    Map* gameMap;
+    WarzoneCard::Deck* gameDeck;
+    std::vector<Player*>* players; 
+
 public:
-    // Constructors/Destructor
     GameEngine();
-    GameEngine(const GameEngine& other); // Copy constructor
+    GameEngine(const GameEngine& other);  // Copy constructor
     ~GameEngine();
 
-    // methods
     bool validateCommand(const std::string& command) const;
     bool executeCommand(const std::string& command);
     std::string getCurrentState() const;
     void printCurrentState() const;
 
-    // operator overloads (since they are objects as spoken in class)
-    GameEngine& operator=(const GameEngine& other);
+    GameEngine& operator=(const GameEngine& other);  // Assignment operator
     friend std::ostream& operator<<(std::ostream& os, const GameEngine& engine);
 
     void addObserver(Observer* observer);

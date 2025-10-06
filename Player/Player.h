@@ -2,31 +2,34 @@
 #include <string>
 #include <vector>
 #include <iostream>
-#include "Orders/Orders.h"
-#include "Cards/Cards.h"
-#include "Map/Map.h"
-using namespace std;
+#include "../Orders/Orders.h"
+#include "../Cards/Cards.h"
+#include "../Map/Map.h"
 
 class Player {
     private:
-        string name;
-        vector<Territory*> territories;
-        Hand* hand;
+        std::string name; 
+        std::vector<Territory*>* territories;
+        WarzoneCard::Hand* hand;
         OrdersList* ordersList;
 
     public:
-        Player(std::string name);
+        Player(const std::string& name);
+        Player(const Player& other);  // Copy constructor
+        Player& operator=(const Player& other);  // Assignment operator
         ~Player();
 
-        string getName();
-        vector<Territory*> getTerritories();
-        Hand* getHand();
-        OrdersList* getOrdersList();
+        std::string getName() const;
+        std::vector<Territory*>* getTerritories() const;
+        WarzoneCard::Hand* getHand() const;
+        OrdersList* getOrdersList() const;
 
         void addTerritory(Territory* t);
-        void setHand(Hand* h);
+        void setHand(WarzoneCard::Hand* h);
 
-        vector<Territory*> toDefend();        
-        vector<Territory*> toAttack();        
-        void issueOrder();                         
+        std::vector<Territory*>* toDefend();        
+        std::vector<Territory*>* toAttack();        
+        void issueOrder(const std::string& orderType);
+        
+        friend std::ostream& operator<<(std::ostream& os, const Player& player);                         
 };

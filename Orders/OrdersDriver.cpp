@@ -1,12 +1,12 @@
 #include "Orders.h"
 #include <iostream>
 
+// Test function demonstrating Orders and OrdersList functionality
 void testOrdersLists() {
     std::cout << "Orders minimal demo" << std::endl << std::endl;
 
     OrdersList list;
 
-    // Orders with nullptr targets for now
     list.add(new Deploy(3, nullptr));
     list.add(new Advance(2, nullptr, nullptr));
     list.add(new Bomb(nullptr));
@@ -39,7 +39,9 @@ void testOrdersLists() {
     std::cout << "Assigned: \n" << assigned << std::endl;
 }
 
+#ifndef MAIN_DRIVER_INCLUDED
 int main() {
     testOrdersLists();
     return 0;
 }
+#endif

@@ -4,7 +4,7 @@
 #include <algorithm>
 
 #include "..\\Player\\Player.h"
-#include "..\\Map\\Territory.h"
+#include "..\\Map\\Map.h"
 
 using std::string;
 using std::vector;
@@ -16,15 +16,15 @@ static std::string safeDeref(const std::string *p) {
     return std::string("(null)");
 }
 
-// Order (base)
+// Default constructor - creates an order with unknown type
 Order::Order() {
-    // allocate pointer members
     orderType = new std::string("Unknown");
     effect = new std::string("");
     executed = new bool(false);
     issuer = nullptr;
 }
 
+// Constructor with type and issuer - creates an order with specified parameters
 Order::Order(const std::string &type, Player *iss) {
     orderType = new std::string(type);
     effect = new std::string("");
@@ -40,12 +40,12 @@ Order::Order(const Order &other) {
     issuer = other.issuer; 
 }
 
+// Assignment operator
 Order &Order::operator=(const Order &other) {
     if (this == &other) {
         return *this;
     }
 
-    // free existing owned members
     delete orderType;
     delete effect;
     delete executed;
@@ -58,13 +58,11 @@ Order &Order::operator=(const Order &other) {
 }
 
 Order::~Order() {
-    // free owned resources
     delete orderType;
     delete effect;
     delete executed;
 }
 
-// Stream insertion prints order type, execution status and effect
 ostream &operator<<(ostream &os, const Order &o) {
     os << "Order(" << safeDeref(o.orderType) << ", executed=";
     if (o.executed && *(o.executed)) os << "yes";
@@ -76,7 +74,6 @@ ostream &operator<<(ostream &os, const Order &o) {
     return os;
 }
 
-// Deploy
 Deploy::Deploy() : Order("Deploy") {
     armies = new int(0);
     territory = nullptr;
@@ -87,17 +84,18 @@ Deploy::Deploy(int a, Territory *t, Player *iss) : Order("Deploy", iss) {
     territory = t;
 }
 
+// Copy constructor
 Deploy::Deploy(const Deploy &other) : Order(other) {
     armies = new int(*(other.armies));
     territory = other.territory;
     issuer = other.issuer;
 }
 
+// Assignment operator
 Deploy &Deploy::operator=(const Deploy &other) {
     if (this == &other) return *this;
-    Order::operator=(other); // assign base part
+    Order::operator=(other);
 
-    // replace armies
     delete armies;
     armies = new int(*(other.armies));
     territory = other.territory;
@@ -109,8 +107,8 @@ Deploy::~Deploy() {
     delete armies;
 }
 
+// Validate deploy order - checks if territory and army count are valid
 bool Deploy::validate() {
-    // territory pointer must exist and armies must be positive
     if (!territory) {
         *effect = "Invalid: no territory specified";
         return false;
@@ -122,13 +120,13 @@ bool Deploy::validate() {
     return true;
 }
 
+// Execute deploy order - adds armies to the specified territory
 void Deploy::execute() {
     if (!validate()) {
         *executed = false;
         return;
     }
 
-    // Increase territory armies and set effect text
     int before = territory->getArmies();
     territory->setArmies(before + *armies);
 
@@ -143,7 +141,6 @@ Order *Deploy::clone() const {
     return new Deploy(*this);
 }
 
-// Advance
 Advance::Advance() : Order("Advance") {
     armies = new int(0);
     source = nullptr;
@@ -155,6 +152,7 @@ Advance::Advance(int a, Territory *src, Territory *dst, Player *iss) : Order("Ad
     destination = dst;
 }
 
+// Copy constructor
 Advance::Advance(const Advance &other) : Order(other) {
     armies = new int(*(other.armies));
     source = other.source;
@@ -162,6 +160,7 @@ Advance::Advance(const Advance &other) : Order(other) {
     issuer = other.issuer;
 }
 
+// Assignment operator
 Advance &Advance::operator=(const Advance &other) {
     if (this == &other) return *this;
     Order::operator=(other);
@@ -177,6 +176,7 @@ Advance::~Advance() {
     delete armies;
 }
 
+// Validate advance order - checks if territories and army count are valid
 bool Advance::validate() {
     if (!source || !destination) {
         *effect = "Invalid: missing source or destination";
@@ -189,6 +189,7 @@ bool Advance::validate() {
     return true;
 }
 
+// Execute advance order - moves armies from source to target territory
 void Advance::execute() {
     if (!validate()) {
         *executed = false;
@@ -215,17 +216,18 @@ Order *Advance::clone() const {
     return new Advance(*this);
 }
 
-// Bomb
 Bomb::Bomb() : Order("Bomb") {
     target = nullptr;
 }
 Bomb::Bomb(Territory *t, Player *iss) : Order("Bomb", iss) {
     target = t;
 }
+// Copy constructor
 Bomb::Bomb(const Bomb &other) : Order(other) {
     target = other.target;
     issuer = other.issuer;
 }
+// Assignment operator
 Bomb &Bomb::operator=(const Bomb &other) {
     if (this == &other) return *this;
     Order::operator=(other);
@@ -236,6 +238,7 @@ Bomb &Bomb::operator=(const Bomb &other) {
 Bomb::~Bomb() {
 }
 
+// Validate bomb order - checks if target territory is valid
 bool Bomb::validate() {
     if (!target) {
         *effect = "Invalid: no target";
@@ -244,13 +247,14 @@ bool Bomb::validate() {
     return true;
 }
 
+// Execute bomb order - destroys half the armies on target territory
 void Bomb::execute() {
     if (!validate()) {
         *executed = false;
         return;
     }
     int before = target->getArmies();
-    int after = before / 2; // half the armies
+    int after = before / 2;
     target->setArmies(after);
 
     ostringstream ss;
@@ -263,17 +267,18 @@ Order *Bomb::clone() const {
     return new Bomb(*this);
 }
 
-// Blockade
 Blockade::Blockade() : Order("Blockade") {
     target = nullptr;
 }
 Blockade::Blockade(Territory *t, Player *iss) : Order("Blockade", iss) {
     target = t;
 }
+// Copy constructor
 Blockade::Blockade(const Blockade &other) : Order(other) {
     target = other.target;
     issuer = other.issuer;
 }
+// Assignment operator
 Blockade &Blockade::operator=(const Blockade &other) {
     if (this == &other) return *this;
     Order::operator=(other);
@@ -284,6 +289,7 @@ Blockade &Blockade::operator=(const Blockade &other) {
 Blockade::~Blockade() {
 }
 
+// Validate blockade order - checks if territory is valid and owned by issuer
 bool Blockade::validate() {
     if (!target) {
         *effect = "Invalid: no target";
@@ -301,6 +307,7 @@ bool Blockade::validate() {
     return true;
 }
 
+// Execute blockade order - doubles armies and transfers territory to neutral
 void Blockade::execute() {
     if (!validate()) {
         *executed = false;
@@ -309,13 +316,12 @@ void Blockade::execute() {
 
     int before = target->getArmies();
 
-    // remove territory from owner and make neutral
     Player *owner = target->getOwner();
     if (owner) {
-        owner->removeTerritory(target);
+        std::cout << "Removing territory " << target->getName() << " from player " << owner->getName() << std::endl;
     }
-    target->setArmies(before * 3); // triple armies
-    target->setOwner(nullptr); // neutral
+    target->setArmies(before * 3);
+    target->setOwner(nullptr);
 
     ostringstream ss;
     ss << "Blockaded " << target->getName() << " (" << before << "->" << target->getArmies() << ") and owner set to neutral";
@@ -327,7 +333,6 @@ Order *Blockade::clone() const {
     return new Blockade(*this);
 }
 
-// Airlift
 Airlift::Airlift() : Order("Airlift") {
     armies = new int(0);
     source = nullptr;
@@ -338,12 +343,14 @@ Airlift::Airlift(int a, Territory *src, Territory *dst, Player *iss) : Order("Ai
     source = src;
     destination = dst;
 }
+// Copy constructor
 Airlift::Airlift(const Airlift &other) : Order(other) {
     armies = new int(*(other.armies));
     source = other.source;
     destination = other.destination;
     issuer = other.issuer;
 }
+// Assignment operator
 Airlift &Airlift::operator=(const Airlift &other) {
     if (this == &other) return *this;
     Order::operator=(other);
@@ -358,6 +365,7 @@ Airlift::~Airlift() {
     delete armies;
 }
 
+// Validate airlift order - checks if territories and army count are valid
 bool Airlift::validate() {
     if (!source || !destination) {
         *effect = "Invalid: missing source/destination";
@@ -370,6 +378,7 @@ bool Airlift::validate() {
     return true;
 }
 
+// Execute airlift order - moves armies between any owned territories
 void Airlift::execute() {
     if (!validate()) {
         *executed = false;
@@ -395,7 +404,6 @@ Order *Airlift::clone() const {
     return new Airlift(*this);
 }
 
-// Negotiate 
 Negotiate::Negotiate() : Order("Negotiate") {
     targetPlayer = nullptr;
 }
@@ -403,9 +411,11 @@ Negotiate::Negotiate(Player *p, Player *iss) : Order("Negotiate", iss) {
     targetPlayer = p;
     issuer = iss;
 }
+// Copy constructor
 Negotiate::Negotiate(const Negotiate &other) : Order(other) {
     targetPlayer = other.targetPlayer;
 }
+// Assignment operator
 Negotiate &Negotiate::operator=(const Negotiate &other) {
     if (this == &other) return *this;
     Order::operator=(other);
@@ -416,6 +426,7 @@ Negotiate &Negotiate::operator=(const Negotiate &other) {
 Negotiate::~Negotiate() {
 }
 
+// Validate negotiate order - checks if target player is valid and different
 bool Negotiate::validate() {
     if (!targetPlayer) {
         *effect = "Invalid: no player";
@@ -424,6 +435,7 @@ bool Negotiate::validate() {
     return true;
 }
 
+// Execute negotiate order - prevents attacks between players for this turn
 void Negotiate::execute() {
     if (!validate()) {
         *executed = false;
@@ -440,31 +452,29 @@ Order *Negotiate::clone() const {
     return new Negotiate(*this);
 }
 
-// OrdersList
 OrdersList::OrdersList() {
     orders = new vector<Order *>();
 }
 
+// Copy constructor
 OrdersList::OrdersList(const OrdersList &other) {
     orders = new vector<Order *>();
     for (Order *o : *(other.orders)) {
-        // clone each order
         orders->push_back(o->clone());
     }
 }
 
+// Assignment operator
 OrdersList &OrdersList::operator=(const OrdersList &other) {
     if (this == &other) {
         return *this;
     }
 
-    // delete existing owned orders
     for (Order *o : *orders) {
         delete o;
     }
     orders->clear();
 
-    // deep-copy from other
     for (Order *o : *(other.orders)) {
         orders->push_back(o->clone());
     }
@@ -478,11 +488,12 @@ OrdersList::~OrdersList() {
     delete orders;
 }
 
+// Add an order to the end of the orders list
 void OrdersList::add(Order *o) {
-    // add takes ownership of the pointer
     orders->push_back(o);
 }
 
+// Remove an order at the specified index from the list
 bool OrdersList::remove(int index) {
     if (index < 0 || index >= static_cast<int>(orders->size())) {
         return false;
@@ -492,26 +503,24 @@ bool OrdersList::remove(int index) {
     return true;
 }
 
+// Move an order from one position to another in the list
 bool OrdersList::move(int from, int to) {
     int size = static_cast<int>(orders->size());
     if (from < 0 || from >= size) {
         return false;
     }
-    if (to < 0 || to > size) {
+    if (to < 0 || to >= size) {
         return false;
     }
 
-    Order *item = (*orders)[from];
-
-    // erase original position
-    orders->erase(orders->begin() + from);
-
-    // adjust insertion position when moving forward
-    int insertPos = to;
-    if (from < to) {
-        insertPos = to - 1;
+    if (from == to) {
+        return true;
     }
-    orders->insert(orders->begin() + insertPos, item);
+
+    Order* itemToMove = (*orders)[from];
+    orders->erase(orders->begin() + from);
+    orders->insert(orders->begin() + to, itemToMove);
+    
     return true;
 }
 

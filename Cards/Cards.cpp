@@ -1,4 +1,6 @@
 #include "Cards.h"
+#include "../Player/Player.h"
+#include "../Orders/Orders.h"
 #include <algorithm>
 #include <stdexcept>
 
@@ -29,34 +31,44 @@ namespace WarzoneCard {
         type = t;
     }
 
-    void Card::play(WarzonePlayer::Player* player) {
- 
-        
+    void Card::play(Player* player) {
         if (!player) {
             return;
         }
 
+        Order* order = nullptr;
         std::cout << "Card::play() called for ";
+        
         switch (type) {
             case CardType::Bomb:
-                std::cout << "Bomb card - would create Bomb order";
+                std::cout << "Bomb card - creating Bomb order";
+                order = new Bomb();
                 break;
             case CardType::Reinforcement:
-                std::cout << "Reinforcement card - would create Reinforcement order";
+                std::cout << "Reinforcement card - creating Deploy order (reinforcement equivalent)";
+                order = new Deploy();
                 break;
             case CardType::Blockade:
-                std::cout << "Blockade card - would create Blockade order";
+                std::cout << "Blockade card - creating Blockade order";
+                order = new Blockade();
                 break;
             case CardType::Airlift:
-                std::cout << "Airlift card - would create Airlift order";
+                std::cout << "Airlift card - creating Airlift order";
+                order = new Airlift();
                 break;
             case CardType::Diplomacy:
-                std::cout << "Diplomacy card - would create Negotiate order";
+                std::cout << "Diplomacy card - creating Negotiate order";
+                order = new Negotiate();
                 break;
             case CardType::Unknown:
             default:
                 std::cout << "Unknown card - no action taken";
                 return;
+        }
+        
+        if (order && player->getOrdersList()) {
+            player->getOrdersList()->add(order);
+            std::cout << " - order added to player's order list";
         }
         std::cout << std::endl;
     }
@@ -87,6 +99,7 @@ namespace WarzoneCard {
     }
 
 
+    // Constructor - creates a deck with 25 cards (5 of each type)
     Deck::Deck() : cards(new std::vector<Card*>()), gen(rd()) {
         for (int i = 0; i < 5; ++i) {
             cards->push_back(new Card(CardType::Bomb));
@@ -140,10 +153,12 @@ namespace WarzoneCard {
         delete cards;
     }
 
+    // Get reference to the cards vector
     const std::vector<Card*>& Deck::getCards() const {
         return *cards;
     }
 
+    // Replace all cards in deck with new set of cards
     void Deck::setCards(const std::vector<Card*>& newCards) {
         for (Card* card : *cards) {
             delete card;
@@ -157,6 +172,7 @@ namespace WarzoneCard {
         }
     }
 
+    // Draw a random card from the deck
     Card* Deck::draw() {
         if (cards->empty()) {
             return nullptr;
@@ -171,6 +187,21 @@ namespace WarzoneCard {
         return drawnCard;
     }
 
+    // Draw a card and add it directly to the specified hand
+    bool Deck::drawToHand(Hand* hand) {
+        if (!hand) {
+            return false;
+        }
+        
+        Card* drawnCard = draw();
+        if (drawnCard) {
+            hand->addCardToHand(drawnCard);
+            return true;
+        }
+        return false;
+    }
+
+    // Return a played card back to the deck
     void Deck::returnToDeck(Card* card) {
         if (card) {
             cards->push_back(card);
@@ -187,9 +218,10 @@ namespace WarzoneCard {
         return os;
     }
 
-
+    // Constructor - creates an empty hand
     Hand::Hand() : handCards(new std::vector<Card*>()) {}
 
+    // Copy constructor
     Hand::Hand(const Hand& other) : handCards(new std::vector<Card*>()) {
         for (Card* card : *other.handCards) {
             handCards->push_back(card);
@@ -210,10 +242,12 @@ namespace WarzoneCard {
         delete handCards;
     }
 
+    // Get reference to the hand's cards
     const std::vector<Card*>& Hand::getHandCards() const {
         return *handCards;
     }
 
+    // Replace all cards in hand with new set
     void Hand::setHandCards(const std::vector<Card*>& src) {
         handCards->clear();
         for (Card* card : src) {
@@ -221,12 +255,14 @@ namespace WarzoneCard {
         }
     }
 
+    // Add a card to the hand
     void Hand::addCardToHand(Card* c) {
         if (c) {
             handCards->push_back(c);
         }
     }
 
+    // Remove a specific card from the hand
     void Hand::removeCardFromHand(Card* c) {
         if (c) {
             auto it = std::find(handCards->begin(), handCards->end(), c);
@@ -236,7 +272,8 @@ namespace WarzoneCard {
         }
     }
 
-    void Hand::playCard(Card* c, WarzonePlayer::Player* player, Deck* deck) {
+    // Play a card - executes its effect and returns it to deck
+    void Hand::playCard(Card* c, Player* player, Deck* deck) {
         if (!c || !player || !deck) {
             return;
         }

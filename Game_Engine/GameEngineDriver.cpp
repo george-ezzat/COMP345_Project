@@ -2,13 +2,11 @@
 #include <iostream>
 #include <string>
 
-// main driver function for the Game Engine component
+// Test function demonstrating GameEngine state transitions
 void testGameStates() {
     std::cout << "=== Testing Game Engine States ===" << std::endl;
 
-
-    GameEngine engine;
-
+    GameEngine* engine = new GameEngine(); 
     std::string command;
     bool continueGame = true;
 
@@ -17,27 +15,27 @@ void testGameStates() {
     std::cout << "Type 'exit' to quit the test." << std::endl;
 
     while (continueGame) {
-
-        engine.printCurrentState();
+        engine->printCurrentState();
         std::cout << "Enter command: ";
         std::getline(std::cin, command);
 
-
-        if (command == "exit") {
+        if (command == "end") {
             std::cout << "Exiting game engine test." << std::endl;
             continueGame = false;
         }
-        // Execute the command
         else {
-            engine.executeCommand(command);
+            engine->executeCommand(command);
         }
 
         std::cout << std::endl;
     }
+    
+    delete engine;
 }
 
-// For testing 
+#ifndef MAIN_DRIVER_INCLUDED
 int main() {
     testGameStates();
     return 0;
 }
+#endif

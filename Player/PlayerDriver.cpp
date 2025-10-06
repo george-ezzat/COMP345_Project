@@ -1,26 +1,31 @@
 #include "Player.h"
 using namespace std;
 
+// Test function demonstrating Player class functionality
 void testPlayers() {
     Player* p1 = new Player("Alice");
 
-    p1->addTerritory(new Territory("Territory 1"));
-    p1->addTerritory(new Territory("Territory 2"));
+    Continent* europe = new Continent("Europe");
+    p1->addTerritory(new Territory(1, "Ukraine", europe));
+    p1->addTerritory(new Territory(2, "Germany", europe));
 
-    auto defendList = p1->toDefend();
-    std::cout << p1->getName() << " will Defend:" <<;
-    for (auto t : defendList) {
-        std::cout << " - " << t->name <<;
+    std::vector<Territory *>* defendList = p1->toDefend();
+    std::cout << p1->getName() << " will Defend:" << std::endl;
+    for (auto t : *defendList) {
+        std::cout << " - " << t->getName() << std::endl;
     }
 
-    auto attackList = p1->toAttack();
-    std::cout << p1->getName() << " will Attack:" <<;
-    for (auto t : attackList) {
-        std::cout << " - " << t->name <<;
+    std::vector<Territory *>* attackList = p1->toAttack();
+    std::cout << p1->getName() << " will Attack:" << std::endl;
+    for (auto t : *attackList) {
+        std::cout << " - " << t->getName() << std::endl;
     }
 
-    p1->issueOrder();
-    p1->getOrdersList()->printOrders();
+    p1->issueOrder("Advance");
+    std::cout << "Orders issued by " << p1->getName() << ":" << std::endl;
+    for (auto order : *(p1->getOrdersList()->getOrders())) {
+        std::cout << " - " << *order << std::endl;
+    }
 
     delete p1;
 }
